@@ -4,22 +4,86 @@
 
 #define MSG_ERRO_EXECUCAO "Digite: %s <nthreads_leitor> <nthreads_escritor> <qtd_execucoes_leitura> <qtd_execucoes_escrita> <arquivo_log>\n"
 
-int nthreads_leitoras = 0, nthreads_escritoras = 0, qtd_execucoes_leitura = 0, qtd_execucoes_escrita =0;
+int nthreads_leitoras = 0, nthreads_escritoras = 0, qtd_execucoes_leitura = 0, qtd_execucoes_escrita = 0, leitoras_executando = 0, escritoras_executando = 0;
 
 pthread_mutex_t mutex;
 pthread_cond_t cond_leitor, cond_escritor;
 
-void entraLeitura() {}
+void entraLeitura(int id){
+    pthread_mutex_lock(&mutex);
 
-void saiLeitura() {}
+    while(escritoras_executando)
+		pthread_cond_wait(&cond_leitor, &mutex);
 
-void entraEscrita() {}
+	leitoras_executando++;
 
-void saiEscrita() {}
+	printf("entraLeitura(): %d | leitoras_executando: %d\n", id, leitoras_executando);
 
-void *leitora(void *arg) {}
+	pthread_mutex_unlock(&mutex);
+}
 
-void *escritora(void *arg) {}
+void saiLeitura(int id){
+    pthread_mutex_lock(&mutex);
+	leitoras_executando--;
+
+	if(!leitoras_executando)
+        pthread_cond_signal(&cond_escritor);
+
+	printf("saiLeitura(): %d | leitoras_executando: %d\n", id, leitoras_executando);
+	
+    pthread_mutex_unlock(&mutex);
+}
+
+void entraEscrita(int id){
+    pthread_mutex_lock(&mutex);
+
+	while(leitoras_executando || escritoras_executando)
+		pthread_cond_wait(&cond_escritor, &mutex);
+
+	escritoras_executando++;
+
+	printf("entraEscrita(): %d | escritoras_executando: %d\n", id, escritoras_executando);
+	
+    pthread_mutex_unlock(&mutex);
+}
+
+void saiEscrita(int id){
+    pthread_mutex_lock(&mutex);
+
+	escritoras_executando--;
+
+	pthread_cond_signal(&cond_escritor);
+	pthread_cond_broadcast(&cond_leitor);
+	
+    printf("saiEscrita(): %d | escritoras_executando: %d\n", id, escritoras_executando);
+	
+    pthread_mutex_unlock(&mutex);
+
+}
+
+void *leitora(void *arg){
+    int id = * (int *) arg;
+
+    for(int i = 0; i < qtd_execucoes_leitura; i++){
+        entraLeitura(id);
+        //faz algo
+        saiLeitura(id);
+    }
+
+    pthread_exit(NULL);
+}
+
+void *escritora(void *arg){
+    int id = * (int *) arg;
+
+    for(int i = 0; i < qtd_execucoes_escrita; i++){
+        entraEscrita(id);
+        //faz algo
+        saiEscrita(id);
+    }
+
+    pthread_exit(NULL);
+}
 
 void main(int argc, char *argv[]) {
     pthread_t *threads_leitoras, *threads_escritoras;
