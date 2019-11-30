@@ -1,10 +1,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
+#include <string.h>
 
 #define MSG_ERRO_EXECUCAO "Digite: %s <nthreads_leitor> <nthreads_escritor> <qtd_execucoes_leitura> <qtd_execucoes_escrita> <arquivo_log>\n"
 
 int nthreads_leitoras = 0, nthreads_escritoras = 0, qtd_execucoes_leitura = 0, qtd_execucoes_escrita = 0, leitoras_executando = 0, escritoras_executando = 0;
+
+int var = -1;
+
+FILE *arquivo_log;
 
 pthread_mutex_t mutex;
 pthread_cond_t cond_leitor, cond_escritor;
@@ -18,7 +23,9 @@ void entraLeitura(int id)
 
     leitoras_executando++;
 
-    printf("entraLeitura(): %d | leitoras_executando: %d\n", id, leitoras_executando);
+    // escrever no log
+    fprintf(arquivo_log, "%d;entraLeitura();%d\n", id, leitoras_executando);
+    //printf("%d;entraLeitura();%d\n", id, leitoras_executando);
 
     pthread_mutex_unlock(&mutex);
 }
@@ -31,7 +38,9 @@ void saiLeitura(int id)
     if (!leitoras_executando)
         pthread_cond_signal(&cond_escritor);
 
-    printf("saiLeitura(): %d | leitoras_executando: %d\n", id, leitoras_executando);
+    // escrever no log
+    fprintf(arquivo_log, "%d;saiLeitura();%d\n", id, leitoras_executando);
+    //printf("%d;saiLeitura();%d\n", id, leitoras_executando);
 
     pthread_mutex_unlock(&mutex);
 }
@@ -45,7 +54,9 @@ void entraEscrita(int id)
 
     escritoras_executando++;
 
-    printf("entraEscrita(): %d | escritoras_executando: %d\n", id, escritoras_executando);
+    // escreve no log
+    fprintf(arquivo_log, "%d;entraEscrita();%d\n", id, escritoras_executando);
+    //printf("%d;entraEscrita();%d\n", id, escritoras_executando);
 
     pthread_mutex_unlock(&mutex);
 }
@@ -59,7 +70,9 @@ void saiEscrita(int id)
     pthread_cond_signal(&cond_escritor);
     pthread_cond_broadcast(&cond_leitor);
 
-    printf("saiEscrita(): %d | escritoras_executando: %d\n", id, escritoras_executando);
+    // escreve no log
+    fprintf(arquivo_log, "%d;saiEscrita();%d\n", id, escritoras_executando);
+    //printf("%d;saiEscrita();%d\n", id, escritoras_executando);
 
     pthread_mutex_unlock(&mutex);
 }
@@ -67,14 +80,26 @@ void saiEscrita(int id)
 void *leitora(void *arg)
 {
     int id = *(int *)arg;
+    char *asdasd = malloc(sizeof(*asdasd));
+    FILE *log_thread;
+
+    sprintf(asdasd, "thread%d.txt", id);
+
+    log_thread = fopen(asdasd, "w");
+    if (log_thread == NULL)
+    {
+        fprintf(stderr, "Erro ao abrir arquivo %s\n", log_thread);
+        exit(-1);
+    }
 
     for (int i = 0; i < qtd_execucoes_leitura; i++)
     {
         entraLeitura(id);
-        //faz algo
+        fprintf(log_thread, "%d\n", var);
         saiLeitura(id);
     }
 
+    fclose(log_thread);
     pthread_exit(NULL);
 }
 
@@ -85,7 +110,7 @@ void *escritora(void *arg)
     for (int i = 0; i < qtd_execucoes_escrita; i++)
     {
         entraEscrita(id);
-        //faz algo
+        var = id;
         saiEscrita(id);
     }
 
@@ -109,7 +134,7 @@ void main(int argc, char *argv[])
     qtd_execucoes_escrita = atoi(argv[4]);
     char *path_log = argv[5];
 
-    FILE *arquivo_log = fopen(path_log, "w");
+    arquivo_log = fopen(path_log, "w");
     if (arquivo_log == NULL)
     {
         fprintf(stderr, "Erro ao abrir arquivo %s\n", arquivo_log);
@@ -142,7 +167,9 @@ void main(int argc, char *argv[])
             printf("--ERRO: malloc do id leitoras\n");
             exit(-1);
         }
-        *id_leitoras = i + 1;
+
+        //leitoras possuem id par
+        *id_leitoras = i * 2;
 
         if (pthread_create(&threads_leitoras[i], NULL, leitora, (void *)id_leitoras))
         {
@@ -159,7 +186,9 @@ void main(int argc, char *argv[])
             printf("--ERRO: malloc do id escritoras\n");
             exit(-1);
         }
-        *id_escritoras = i + 1;
+
+        //escritoras possuem id impar
+        *id_escritoras = i + (i + 1);
 
         if (pthread_create(&threads_escritoras[i], NULL, escritora, (void *)id_escritoras))
         {
@@ -185,4 +214,6 @@ void main(int argc, char *argv[])
             exit(-1);
         }
     }
+
+    fclose(arquivo_log);
 }
