@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
-#include <string.h>
 
 #define MSG_ERRO_EXECUCAO "Digite: %s <nthreads_leitor> <nthreads_escritor> <qtd_execucoes_leitura> <qtd_execucoes_escrita> <arquivo_log>\n"
 
@@ -24,8 +23,8 @@ void entraLeitura(int id)
     leitoras_executando++;
 
     // escrever no log
-    fprintf(arquivo_log, "%d;entraLeitura();%d\n", id, leitoras_executando);
-    //printf("%d;entraLeitura();%d\n", id, leitoras_executando);
+    fprintf(arquivo_log, "%d;entraLeitura();%d\n", id, var);
+    //printf("%d;entraLeitura();%d\n", id, var);
 
     pthread_mutex_unlock(&mutex);
 }
@@ -39,8 +38,8 @@ void saiLeitura(int id)
         pthread_cond_signal(&cond_escritor);
 
     // escrever no log
-    fprintf(arquivo_log, "%d;saiLeitura();%d\n", id, leitoras_executando);
-    //printf("%d;saiLeitura();%d\n", id, leitoras_executando);
+    fprintf(arquivo_log, "%d;saiLeitura();%d\n", id, var);
+    //printf("%d;saiLeitura();%d\n", id, var);
 
     pthread_mutex_unlock(&mutex);
 }
@@ -55,8 +54,8 @@ void entraEscrita(int id)
     escritoras_executando++;
 
     // escreve no log
-    fprintf(arquivo_log, "%d;entraEscrita();%d\n", id, escritoras_executando);
-    //printf("%d;entraEscrita();%d\n", id, escritoras_executando);
+    fprintf(arquivo_log, "%d;entraEscrita();%d\n", id, var);
+    //printf("%d;entraEscrita();%d\n", id, var);
 
     pthread_mutex_unlock(&mutex);
 }
@@ -71,8 +70,8 @@ void saiEscrita(int id)
     pthread_cond_broadcast(&cond_leitor);
 
     // escreve no log
-    fprintf(arquivo_log, "%d;saiEscrita();%d\n", id, escritoras_executando);
-    //printf("%d;saiEscrita();%d\n", id, escritoras_executando);
+    fprintf(arquivo_log, "%d;saiEscrita();%d\n", id, var);
+    //printf("%d;saiEscrita();%d\n", id, var);
 
     pthread_mutex_unlock(&mutex);
 }
