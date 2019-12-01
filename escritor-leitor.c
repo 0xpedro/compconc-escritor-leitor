@@ -140,6 +140,8 @@ void main(int argc, char *argv[])
         exit(-1);
     }
 
+    fprintf(arquivo_log, "%d %d %d %d\n", nthreads_leitoras, nthreads_escritoras, qtd_execucoes_leitura, qtd_execucoes_escrita);
+
     pthread_mutex_init(&mutex, NULL);
     pthread_cond_init(&cond_leitor, NULL);
     pthread_cond_init(&cond_escritor, NULL);
