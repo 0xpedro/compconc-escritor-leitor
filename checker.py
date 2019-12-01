@@ -11,7 +11,7 @@ if l.mode is not "r":
 log = l.readlines()
 
 params = log[0].split()
-qtd_exec = 2 * ((int(params[0]) * int(params[2])) + (int(params) * int(params[3]))) #¯\_(ツ)_/¯
+qtd_exec = 2 * ((int(params[0]) * int(params[2])) + (int(params[1]) * int(params[3]))) #¯\_(ツ)_/¯
 
 var = -1
 
