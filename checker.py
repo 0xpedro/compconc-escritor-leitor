@@ -8,26 +8,28 @@ except IOError:
 if l.mode is not "r":
     exit(-1)
 
-log = l.readlines()
+var = -1
 
+log = l.readlines()
 params = log[0].split()
 qtd_exec = 2 * ((int(params[0]) * int(params[2])) + (int(params[1]) * int(params[3]))) #¯\_(ツ)_/¯
 
-var = -1
-
 log_thread = []
 
-for i in range(qtd_exec):
-    linha = log[i+1].split(";")
-    print(linha[0])
-    
-    if int(linha[0]) % 2 == 0:
-        print("leitora")
-    else:
-        print("escritora")
-
 def entraEscrita(x):
-    var = int(x)
+    global var
+    var = x
 
 def entraLeitura():
-    return var
+    global var
+    print(var)
+
+
+for i in range(qtd_exec):
+    linha = log[i+1].split("\n")
+    linha = linha[0].split(";")
+
+    if int(linha[0]) % 2 == 0:
+        entraLeitura()
+    else:
+        entraEscrita(int(linha[2]))
