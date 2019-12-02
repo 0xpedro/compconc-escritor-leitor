@@ -73,7 +73,7 @@ void *leitora(void *arg)
     char *asdasd = malloc(sizeof(*asdasd));
     FILE *log_thread;
 
-    sprintf(asdasd, "thread%d.txt", id);
+    sprintf(asdasd, "%d.txt", id);
 
     log_thread = fopen(asdasd, "w");
     if (log_thread == NULL)
