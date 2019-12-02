@@ -34,22 +34,52 @@ for i in range(nthreads_escritoras): # populando o dictionary com a qtd de execu
 
 log_thread = {} # map p guardar os logs das threads
 for i in range(nthreads_leitoras):
-    file_name = "thread" + str(i*2) + ".txt"
+    file_name = str(i*2) + ".txt"
     with open(file_name) as f:
         log_thread[i*2] = f.readlines() # a key é o id da thread e o value são as linhas do log
 
-def entraEscrita(id):
-    global var
+def entraEscrita(id, leit, escr):
+    global var, escritoras_ativas, leitoras_ativas
     var = id # guarda o id da thread na variavel
+
+    escritoras_ativas += 1 # incrementa o numero de threads escritoras ativas, tem de ser 0 ou 1
+
+    if escr != escritoras_ativas: # verifica se o numero de threads no log é o mesmo da execução sequencial
+        print("Valor de escritoras ativas diferente do registrado no log. A execução do programa é incorreta.")
+        sys.exit()
+    
+    if leit != leitoras_ativas: # verifica se o numero de threads no log é o mesmo da execução sequencial
+        print("Valor de leitoras ativas diferente do registrado no log. A execução do programa é incorreta.")
+        sys.exit()
+
+    if escritoras_ativas > 1: # se mais de uma thread esta escrevendo ao mesmo tempo, deu ruim
+        print("Mais de uma thread escritora ativa, a execução está incorreta. threads: " + str(escritoras_ativas))
+        sys.exit()
     
     if qtd_exec_escritoras[id] == 0: # verifica se essa thread executou mais vezes do que deveria
         print("Thread escritora executando mais vezes do que deveria.")
         sys.exit()
     
+def saiEscrita(id, leit, escr):
+    global escritoras_ativas, leitoras_ativas
+
     qtd_exec_escritoras[id] -= 1 # diminui o numero de execucoes que ainda restam para a thread
 
-def entraLeitura(id):
-    global var
+    escritoras_ativas -= 1
+
+    if escr != escritoras_ativas: # verifica se o numero de threads no log é o mesmo da execução sequencial
+        print("Valor de escritoras ativas diferente do registrado no log. A execução do programa é incorreta.")
+        sys.exit()
+    
+    if leit != leitoras_ativas: # verifica se o numero de threads no log é o mesmo da execução sequencial
+        print("Valor de leitoras ativas diferente do registrado no log. A execução do programa é incorreta.")
+        sys.exit()
+
+def entraLeitura(id, leit, escr):
+    global var, escritoras_ativas, leitoras_ativas
+
+    leitoras_ativas += 1
+
     if qtd_exec_leitoras[id] == 0: # verifica se essa thread executou mais vezes do que deveria
        print("Thread leitora executando mais vezes do que deveria.")
        sys.exit()
@@ -61,7 +91,28 @@ def entraLeitura(id):
         print("Thread " + str(id) + " leu um valor incorreto.")
         sys.exit()
     
+    if escr != escritoras_ativas: # verifica se o numero de threads no log é o mesmo da execução sequencial
+        print("Valor de escritoras ativas diferente do registrado no log. A execução do programa é incorreta.")
+        sys.exit()
+    
+    if leit != leitoras_ativas: # verifica se o numero de threads no log é o mesmo da execução sequencial
+        print("Valor de leitoras ativas diferente do registrado no log. A execução do programa é incorreta.")
+        sys.exit()
+    
+
+def saiLeitura(id, leit, escr):
+    global escritoras_ativas, leitoras_ativas
+    
     qtd_exec_leitoras[id] -= 1 # decrementa o numero de execucoes que ainda restam para a thread
+    leitoras_ativas -= 1 # decrementa o numero de leitoras ativas
+
+    if escr != escritoras_ativas: # verifica se o numero de threads no log é o mesmo da execução sequencial
+        print("Valor de escritoras ativas diferente do registrado no log. A execução do programa é incorreta.")
+        sys.exit()
+    
+    if leit != leitoras_ativas: # verifica se o numero de threads no log é o mesmo da execução sequencial
+        print("Valor de leitoras ativas diferente do registrado no log. A execução do programa é incorreta.")
+        sys.exit()
 
 
 for i in range(qtd_exec):
@@ -70,16 +121,14 @@ for i in range(qtd_exec):
 
     if int(linha[0]) % 2 == 0: # se id é par, thread leitora
         if linha[1] == "entraLeitura()":
-            entraLeitura(int(linha[0])) # x thread executa a operação de leitura
+            entraLeitura(int(linha[0]), int(linha[3]), int(linha[4])) # x thread executa a operação de leitura
+        elif linha[1] == "saiLeitura()":
+            saiLeitura(int(linha[0]), int(linha[3]), int(linha[4]))
     else: # id é impar, então thread escritora
         if linha[1] == "entraEscrita()":
-            escritoras_ativas += 1 # incrementa o numero de threads escritoras ativas, tem de ser 0 ou 1
-            entraEscrita(int(linha[0])) # x thread executa a operação de escrita
-            if escritoras_ativas > 1: # se mais de uma thread esta escrevendo ao mesmo tempo, deu ruim
-                print("Mais de uma thread escritora ativa, a execução está incorreta. threads: " + str(escritoras_ativas))
-                sys.exit()
+            entraEscrita(int(linha[0]), int(linha[3]), int(linha[4])) # x thread executa a operação de escrita
         elif linha[1] == "saiEscrita()": # se a operação de escrita é saiEscrita(), decrementa o número de escritoras ativas
-            escritoras_ativas -= 1
+            saiEscrita(int(linha[0]), int(linha[3]), int(linha[4]))
         else:
             print("sei la mano qq isso  " + linha[1])
             sys.exit()
@@ -96,5 +145,5 @@ for i in range(nthreads_leitoras):
 
 print("O programa foi executado corretamente :)")
 print("Não houveram leitoras e escritoras acessando a variavel compartilhada ao mesmo tempo.")
-print("Todas as " + nthreads_leitoras + " threads leitoras executaram o numero esperado, " + qtd_exec_leitoras + ", de vezes.")
-print("Todas as " + nthreads_escritoras + " threads leitoras executaram o numero esperado, " + qtd_exec_escritoras + ", de vezes.")
+print("Todas as " + str(nthreads_leitoras) + " threads leitoras executaram o numero de vezes esperado. " + str(qtd_exec_leitoras))
+print("Todas as " + str(nthreads_escritoras) + " threads escritoras executaram o numero de vezes esperado. " + str(qtd_exec_escritoras))
