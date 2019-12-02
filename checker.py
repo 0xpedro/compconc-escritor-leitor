@@ -66,7 +66,7 @@ def entraLeitura(id):
 
 for i in range(qtd_exec):
     linha = log[i+1].split("\n") # pega uma linha do log
-    linha = linha[0].split(";") # splita os valores da linha em 0:<id> 1:<funcao> 2:<valor_da_variavel>
+    linha = linha[0].split(";") # splita os valores da linha em 0:<id> 1:<funcao> 2:<valor_da_variavel> 3:<leitoras_executando> 4:<escritoras_executando>
 
     if int(linha[0]) % 2 == 0: # se id é par, thread leitora
         if linha[1] == "entraLeitura()":

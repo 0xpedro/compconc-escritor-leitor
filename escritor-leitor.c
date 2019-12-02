@@ -19,9 +19,7 @@ void entraLeitura(int id)
 
     leitoras_executando++;
 
-    // escrever no log
-    fprintf(arquivo_log, "%d;entraLeitura();%d\n", id, var);
-    //printf("%d;entraLeitura();%d\n", id, var);
+    fprintf(arquivo_log, "%d;entraLeitura();%d;%d;%d\n", id, var, leitoras_executando, escritoras_executando);
 
     pthread_mutex_unlock(&mutex);
 }
@@ -34,7 +32,7 @@ void saiLeitura(int id)
     if (!leitoras_executando)
         pthread_cond_signal(&cond_escritor);
 
-    fprintf(arquivo_log, "%d;saiLeitura();%d\n", id, var);
+    fprintf(arquivo_log, "%d;saiLeitura();%d;%d;%d\n", id, var, leitoras_executando, escritoras_executando);
 
     pthread_mutex_unlock(&mutex);
 }
@@ -48,7 +46,7 @@ void entraEscrita(int id)
 
     escritoras_executando++;
 
-    fprintf(arquivo_log, "%d;entraEscrita();%d\n", id, var);
+    fprintf(arquivo_log, "%d;entraEscrita();%d;%d;%d\n", id, var, leitoras_executando, escritoras_executando);
 
     pthread_mutex_unlock(&mutex);
 }
@@ -62,7 +60,7 @@ void saiEscrita(int id)
     pthread_cond_signal(&cond_escritor);
     pthread_cond_broadcast(&cond_leitor);
 
-    fprintf(arquivo_log, "%d;saiEscrita();%d\n", id, var);
+    fprintf(arquivo_log, "%d;saiEscrita();%d;%d;%d\n", id, var, leitoras_executando, escritoras_executando);
 
     pthread_mutex_unlock(&mutex);
 }
